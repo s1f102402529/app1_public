@@ -1,0 +1,132 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>記録の編集 | BabyLog</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --cream: #fffaf2;
+            --rose: #d98e83;
+            --ink: #514b48;
+        }
+
+        body {
+            min-height: 100vh;
+            color: var(--ink);
+            background: radial-gradient(ellipse at 8% 4%, #f8e8dd 0, transparent 28rem), var(--cream);
+        }
+
+        .edit-card {
+            width: min(100%, 640px);
+            border: 1px solid #f1e9e1;
+            border-radius: 1.25rem;
+            background: #fff;
+            box-shadow: 0 12px 32px #80614a0d;
+        }
+
+        .form-control,
+        .form-select {
+            border-color: #e8dfd8;
+            border-radius: .75rem;
+        }
+
+        .form-control:focus,
+        .form-select:focus {
+            border-color: #d99b8e;
+            box-shadow: 0 0 0 .2rem #d99b8e33;
+        }
+
+        .submit-button {
+            border: 0;
+            border-radius: .8rem;
+            background: var(--rose);
+            color: #fff;
+            font-weight: 700;
+        }
+
+        .submit-button:hover {
+            background: #c97d72;
+            color: #fff;
+        }
+    </style>
+    <link rel="stylesheet" href="{% static 'logs/app.css' %}">
+</head>
+<body>
+    <main class="container page-shell min-vh-100 d-flex align-items-center justify-content-center py-4">
+        <section class="edit-card p-4 p-md-5">
+            <p class="eyebrow mb-1">LITTLE MOMENTS</p>
+            <h1 class="h4 fw-bold mb-4">記録を編集</h1>
+
+            <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="next" value="{{ next_url }}">
+                {% if form.non_field_errors %}
+                    <div class="alert alert-danger" role="alert">{{ form.non_field_errors }}</div>
+                {% endif %}
+
+                <div class="mb-3">
+                    <label for="{{ form.log_type.id_for_label }}" class="form-label fw-semibold">{{ form.log_type.label }}</label>
+                    {{ form.log_type }}
+                    {% for error in form.log_type.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+                </div>
+                <div class="mb-3">
+                    <label for="{{ form.timestamp.id_for_label }}" class="form-label fw-semibold">{{ form.timestamp.label }}</label>
+                    {{ form.timestamp }}
+                    {% for error in form.timestamp.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+                </div>
+                <div class="mb-3" data-log-types="milk">
+                    <label for="{{ form.amount.id_for_label }}" class="form-label fw-semibold">{{ form.amount.label }}</label>
+                    <div class="input-group">
+                        {{ form.amount }}
+                        <span class="input-group-text">ml</span>
+                    </div>
+                    {% for error in form.amount.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+                </div>
+                <div class="mb-3" data-log-types="milk,sleep">
+                    <label for="{{ form.duration.id_for_label }}" class="form-label fw-semibold">{{ form.duration.label }}</label>
+                    <div class="input-group">
+                        {{ form.duration }}
+                        <span class="input-group-text">分</span>
+                    </div>
+                    {% for error in form.duration.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+                </div>
+                <div class="mb-3" data-log-types="temperature">
+                    <label for="{{ form.temperature.id_for_label }}" class="form-label fw-semibold">{{ form.temperature.label }}</label>
+                    <div class="input-group">
+                        {{ form.temperature }}
+                        <span class="input-group-text">℃</span>
+                    </div>
+                    {% for error in form.temperature.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+                </div>
+                <div class="mb-4">
+                    <label for="{{ form.memo.id_for_label }}" class="form-label fw-semibold">{{ form.memo.label }}</label>
+                    {{ form.memo }}
+                    {% for error in form.memo.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+                </div>
+
+                <div class="d-flex justify-content-end gap-2">
+                    <a href="{{ next_url }}" class="btn btn-light rounded-pill">キャンセル</a>
+                    <button type="submit" class="btn submit-button px-4">変更を保存</button>
+                </div>
+            </form>
+        </section>
+    </main>
+    {% include "navigation.html" with active_page="daily" %}
+    <script>
+        const logTypeField = document.getElementById("{{ form.log_type.id_for_label }}");
+
+        function updateLogFields() {
+            document.querySelectorAll("[data-log-types]").forEach((container) => {
+                const types = container.dataset.logTypes.split(",");
+                container.hidden = !types.includes(logTypeField.value);
+            });
+        }
+
+        logTypeField.addEventListener("change", updateLogFields);
+        updateLogFields();
+    </script>
+</body>
+</html>

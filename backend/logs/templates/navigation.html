@@ -1,0 +1,21 @@
+<nav class="bottom-nav position-fixed bottom-0 start-0 end-0" aria-label="メインナビゲーション">
+    <div class="container page-shell">
+        <div class="nav nav-fill justify-content-around py-2">
+            <a class="nav-link{% if active_page == 'home' %} active{% endif %}" href="{% url 'log_list' %}"{% if active_page == 'home' %} aria-current="page"{% endif %}>
+                ホーム
+            </a>
+            <a class="nav-link{% if active_page == 'daily' %} active{% endif %}" href="{% url 'daily_log' %}"{% if active_page == 'daily' %} aria-current="page"{% endif %}>
+                日別
+            </a>
+            <a class="nav-link{% if active_page == 'monthly' %} active{% endif %}" href="{% url 'monthly_log' %}"{% if active_page == 'monthly' %} aria-current="page"{% endif %}>
+                月別
+            </a>
+            <a class="nav-link{% if active_page == 'analytics' %} active{% endif %}" href="{% url 'analytics_dashboard' %}"{% if active_page == 'analytics' %} aria-current="page"{% endif %}>
+                分析
+            </a>
+            <a class="nav-link{% if active_page == 'advice' %} active{% endif %}" href="{% url 'ai_advice' %}"{% if active_page == 'advice' %} aria-current="page"{% endif %}>
+                AI助言
+            </a>
+        </div>
+    </div>
+</nav>

@@ -1,0 +1,166 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>ログイン | BabyLog</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --cream: #fffaf2;
+            --rose: #d98e83;
+            --ink: #514b48;
+            --muted: #8c817b;
+        }
+
+        body {
+            min-height: 100vh;
+            color: var(--ink);
+            background:
+                radial-gradient(ellipse at 8% 4%, #f8e8dd 0, transparent 28rem),
+                radial-gradient(ellipse at 95% 90%, #e9f1e8 0, transparent 25rem),
+                var(--cream);
+            font-family: "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif;
+        }
+
+        .login-card {
+            width: min(100%, 440px);
+            border: 1px solid #f1e9e1;
+            border-radius: 1.4rem;
+            background: #fff;
+            box-shadow: 0 16px 40px #80614a12;
+        }
+
+        .brand-mark {
+            display: inline-grid;
+            width: 4rem;
+            height: 4rem;
+            place-items: center;
+            border-radius: 1.3rem;
+            background: #fff8f1;
+            font-size: 2rem;
+        }
+
+        .eyebrow {
+            color: var(--rose);
+            font-size: .78rem;
+            font-weight: 700;
+            letter-spacing: .12em;
+        }
+
+        .form-control {
+            padding: .75rem .9rem;
+            border-color: #e8dfd8;
+            border-radius: .8rem;
+            background: #fffdfa;
+        }
+
+        .form-control:focus {
+            border-color: #d99b8e;
+            box-shadow: 0 0 0 .2rem #d99b8e33;
+        }
+
+        .form-label {
+            font-size: .9rem;
+            font-weight: 600;
+        }
+
+        .login-button {
+            border: 0;
+            border-radius: .85rem;
+            background: var(--rose);
+            color: #fff;
+            font-weight: 700;
+        }
+
+        .login-button:hover,
+        .login-button:focus {
+            background: #c97d72;
+            color: #fff;
+        }
+
+        .text-muted {
+            color: var(--muted) !important;
+        }
+    </style>
+    <link rel="stylesheet" href="{% static 'logs/app.css' %}">
+</head>
+<body>
+    <main class="container min-vh-100 d-flex align-items-center justify-content-center py-4">
+        <section class="login-card p-4 p-md-5" aria-labelledby="login-heading">
+            <div class="text-center mb-4">
+                <p class="brand-wordmark mb-3" aria-hidden="true">BabyLog</p>
+                <p class="eyebrow mb-2">ちいさな毎日の、たいせつな記録</p>
+                <h1 id="login-heading" class="h3 fw-bold mb-2">おかえりなさい</h1>
+                <p class="text-muted mb-0">BabyLogにログインして、今日の記録をつけましょう。</p>
+            </div>
+
+            {% if form.non_field_errors %}
+                <div class="alert alert-danger" role="alert">
+                    {% for error in form.non_field_errors %}{{ error }}{% endfor %}
+                </div>
+            {% endif %}
+
+            <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="next" value="{{ next }}">
+
+                <div class="mb-3">
+                    <label for="{{ form.username.id_for_label }}" class="form-label">ユーザー名</label>
+                    <input
+                        type="text"
+                        name="{{ form.username.html_name }}"
+                        id="{{ form.username.id_for_label }}"
+                        class="form-control"
+                        value="{{ form.username.value|default_if_none:'' }}"
+                        autocomplete="username"
+                        required
+                        autofocus
+                    >
+                    {% for error in form.username.errors %}
+                        <div class="text-danger small mt-1">{{ error }}</div>
+                    {% endfor %}
+                </div>
+
+                <div class="mb-4">
+                    <label for="{{ form.password.id_for_label }}" class="form-label">パスワード</label>
+                    <input
+                        type="password"
+                        name="{{ form.password.html_name }}"
+                        id="{{ form.password.id_for_label }}"
+                        class="form-control"
+                        autocomplete="current-password"
+                        required
+                    >
+                    {% for error in form.password.errors %}
+                        <div class="text-danger small mt-1">{{ error }}</div>
+                    {% endfor %}
+                </div>
+
+                <button type="submit" class="btn login-button w-100 py-2">ログイン</button>
+            </form>
+
+            {% if demo_accounts_enabled %}
+                <div class="border-top mt-4 pt-4">
+                    <p class="small fw-semibold mb-2">アカウントなしで試す</p>
+                    <form method="post" action="{% url 'demo_login' %}" class="d-grid gap-2">
+                        {% csrf_token %}
+                        <button type="submit" name="demo_account" value="short" class="btn btn-outline-secondary py-2">
+                            デモ1：短期間のデータで試す
+                        </button>
+                        <button type="submit" name="demo_account" value="long" class="btn btn-outline-secondary py-2">
+                            デモ2：長期間のデータで試す
+                        </button>
+                    </form>
+                </div>
+            {% endif %}
+
+            <p class="small text-center mt-3 mb-0">
+                はじめての方は <a href="{% url 'register' %}">ユーザー登録</a>
+            </p>
+            <p class="small text-muted text-center mt-4 mb-0">今日もおつかれさまです。ゆっくり記録していきましょう。</p>
+        </section>
+    </main>
+</body>
+</html>

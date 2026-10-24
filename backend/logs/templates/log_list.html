@@ -1,0 +1,561 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>育児記録 | BabyLog</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --cream: #fffaf2;
+            --peach: #f6d9c8;
+            --rose: #d98e83;
+            --ink: #514b48;
+            --muted: #8c817b;
+            --mint: #dcebe3;
+            --lavender: #eee8f5;
+        }
+
+        body {
+            min-height: 100vh;
+            padding-bottom: 6.5rem;
+            color: var(--ink);
+            background:
+                radial-gradient(ellipse at 8% 4%, #f8e8dd 0, transparent 28rem),
+                radial-gradient(ellipse at 95% 20%, #e9f1e8 0, transparent 25rem),
+                var(--cream);
+            font-family: "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif;
+        }
+
+        .page-shell {
+            max-width: 760px;
+        }
+
+        .eyebrow {
+            color: var(--rose);
+            font-size: .75rem;
+            font-weight: 700;
+            letter-spacing: .12em;
+        }
+
+        .soft-card {
+            border: 1px solid #f1e9e1;
+            border-radius: 1.25rem;
+            background: #fff;
+            box-shadow: 0 12px 32px #80614a0d;
+        }
+
+        .clock-card {
+            background: linear-gradient(125deg, #fff 15%, #fff3ec 100%);
+        }
+
+        .clock-time {
+            font-size: clamp(2rem, 9vw, 3rem);
+            font-variant-numeric: tabular-nums;
+            font-weight: 700;
+            letter-spacing: .02em;
+        }
+
+        .section-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+        }
+
+        .nav-pills .nav-link {
+            border-radius: 999px;
+            color: var(--muted);
+            font-weight: 600;
+        }
+
+        .nav-pills .nav-link.active {
+            background: var(--rose);
+            color: #fff;
+        }
+
+        .prediction-card {
+            border: 1px solid #f0e5dc;
+            border-radius: .9rem;
+            background: #fffdfa;
+        }
+
+        .prediction-badge {
+            color: #a06e61;
+            background: #f9e9df;
+        }
+
+        .quick-button {
+            min-height: 6.3rem;
+            border: 1px solid #f0e9e3;
+            border-radius: 1.1rem;
+            background: #fff;
+            color: var(--ink);
+            box-shadow: 0 5px 14px #80614a0a;
+            transition: transform .15s ease, box-shadow .15s ease;
+        }
+
+        .quick-button:hover,
+        .quick-button:focus-visible {
+            transform: translateY(-2px);
+            border-color: #e4c1b5;
+            background: #fffdfa;
+            color: var(--ink);
+            box-shadow: 0 8px 18px #80614a18;
+        }
+
+        .quick-icon {
+            display: block;
+            font-size: 1.8rem;
+            line-height: 1.2;
+        }
+
+        .quick-label {
+            display: block;
+            margin-top: .45rem;
+            font-size: .85rem;
+            font-weight: 700;
+        }
+
+        .log-item {
+            border: 1px solid #f0e9e3;
+            border-radius: 1rem;
+            background: #fff;
+        }
+
+        .log-icon {
+            display: grid;
+            width: 2.7rem;
+            height: 2.7rem;
+            flex: 0 0 2.7rem;
+            place-items: center;
+            border-radius: .95rem;
+            background: var(--mint);
+            font-size: 1.25rem;
+        }
+
+        .text-muted {
+            color: var(--muted) !important;
+        }
+
+        .empty-state {
+            border: 1px dashed #e9d9cd;
+            border-radius: 1rem;
+            background: #fffdfa;
+        }
+
+        .baby-form select,
+        .baby-form input,
+        .baby-form textarea {
+            width: 100%;
+            padding: .7rem .85rem;
+            border: 1px solid #e8dfd8;
+            border-radius: .75rem;
+            color: var(--ink);
+            background-color: #fffdfa;
+        }
+
+        .baby-form textarea {
+            min-height: 5rem;
+            resize: vertical;
+        }
+
+        .baby-form select:focus,
+        .baby-form input:focus,
+        .baby-form textarea:focus {
+            border-color: #d99b8e;
+            outline: 0;
+            box-shadow: 0 0 0 .2rem #d99b8e33;
+        }
+
+        .submit-button {
+            border: 0;
+            border-radius: .8rem;
+            background: var(--rose);
+            color: #fff;
+            font-weight: 700;
+        }
+
+        .submit-button:hover,
+        .submit-button:focus {
+            background: #c97d72;
+            color: #fff;
+        }
+
+        .bottom-nav {
+            z-index: 1030;
+            border-top: 1px solid #f0e8df;
+            background: #fffdf9f2;
+            backdrop-filter: blur(12px);
+        }
+
+        .bottom-nav .nav-link {
+            min-width: 4.2rem;
+            color: var(--muted);
+            font-size: .7rem;
+            text-align: center;
+        }
+
+        .bottom-nav .nav-link.active {
+            color: #bd766c;
+            font-weight: 700;
+        }
+
+        .bottom-nav .nav-icon {
+            display: block;
+            margin-bottom: .15rem;
+            font-size: 1.2rem;
+            line-height: 1.2;
+        }
+
+        .bottom-nav .nav-link.disabled {
+            opacity: .55;
+        }
+    </style>
+    <link rel="stylesheet" href="{% static 'logs/app.css' %}">
+</head>
+<body>
+    <main class="container page-shell py-3 py-md-4">
+        <header class="d-flex align-items-center gap-3 mb-3">
+            <span class="fw-bold text-success-emphasis" aria-hidden="true">BabyLog</span>
+            <div class="flex-grow-1">
+                <p class="eyebrow mb-1">ちいさな毎日の、たいせつな記録</p>
+                <h1 class="h4 fw-bold mb-0">育児記録</h1>
+            </div>
+            <form method="post" action="{% url 'logout' %}">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-sm btn-outline-secondary">ログアウト</button>
+            </form>
+        </header>
+
+        {% if messages %}
+            <div class="mb-3" aria-live="polite">
+                {% for message in messages %}
+                    <div class="alert {% if message.tags == 'error' %}alert-danger{% else %}alert-success{% endif %} alert-dismissible fade show py-2" role="status">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="閉じる"></button>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        {% if is_demo_account %}
+            <div class="alert alert-info py-2" role="status">
+                デモアカウントでは記録の追加・編集・削除はできません。閲覧・分析・予測・AI機能をお試しください。
+            </div>
+        {% endif %}
+
+        <section class="soft-card clock-card p-3 p-md-4 mb-3" aria-label="現在の日時">
+            <div class="d-flex align-items-center justify-content-between gap-3">
+                <div>
+                    <p class="eyebrow mb-1">TODAY</p>
+                    <p id="current-date" class="mb-1">{{ now|date:"Y年n月j日 l" }}</p>
+                    <p class="small text-muted mb-0">今日も、赤ちゃんのペースで。</p>
+                </div>
+                <time id="current-time" class="clock-time" datetime="{{ now|date:'c' }}">{{ now|date:"H:i" }}</time>
+            </div>
+        </section>
+
+        <nav class="nav nav-pills nav-fill gap-2 mb-3" aria-label="表示切り替え" role="tablist">
+            <button class="nav-link active" id="timeline-tab" data-bs-toggle="pill" data-bs-target="#timeline-panel" type="button" role="tab" aria-controls="timeline-panel" aria-selected="true">タイムライン</button>
+            <button class="nav-link" id="graph-tab" data-bs-toggle="pill" data-bs-target="#graph-panel" type="button" role="tab" aria-controls="graph-panel" aria-selected="false">グラフ</button>
+        </nav>
+
+        <div class="tab-content">
+            <section class="tab-pane fade show active" id="timeline-panel" role="tabpanel" aria-labelledby="timeline-tab" tabindex="0">
+                <section class="soft-card p-3 p-md-4 mb-3" aria-labelledby="schedule-heading">
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <div>
+                            <p class="eyebrow mb-1">COMING UP</p>
+                            <h2 id="schedule-heading" class="section-title mb-0">これからの予測</h2>
+                        </div>
+                        <form method="get" class="d-flex align-items-center gap-2">
+                            <label for="reference-days" class="small text-muted">参照期間</label>
+                            <select id="reference-days" name="reference_days" class="form-select form-select-sm w-auto" onchange="this.form.submit()">
+                                {% for days in prediction_reference_periods %}
+                                    <option value="{{ days }}" {% if predictions.reference_days == days %}selected{% endif %}>{{ days }}日</option>
+                                {% endfor %}
+                            </select>
+                        </form>
+                    </div>
+                    <div class="d-grid gap-2">
+                        <div class="prediction-card d-flex align-items-center gap-3 px-3 py-2">
+                            <span class="fw-bold">{{ predictions.next_feeding|date:"H:i" }}</span>
+                            <span class="badge prediction-badge rounded-pill">
+                                {% if predictions.feeding_data_sufficient %}記録ベース{% else %}標準値{% endif %}
+                            </span>
+                            <span class="ms-auto">授乳</span>
+                        </div>
+                        <p class="small text-muted mb-0 px-2">
+                            {{ predictions.reference_days }}日間の記録 {{ predictions.feeding_log_count }}件・間隔 {{ predictions.feeding_interval_count }}件
+                        </p>
+                        {% if not predictions.feeding_data_sufficient %}
+                            <p class="small text-muted mb-0 px-2">データ不足のため、標準の3時間間隔を使用しています。</p>
+                        {% endif %}
+                        <div class="prediction-card d-flex align-items-center gap-3 px-3 py-2">
+                            <span class="fw-bold">{{ predictions.next_sleep|date:"H:i" }}</span>
+                            <span class="badge prediction-badge rounded-pill">
+                                {% if predictions.sleep_data_sufficient %}記録ベース{% else %}標準値{% endif %}
+                            </span>
+                            <span class="ms-auto">おやすみ</span>
+                        </div>
+                        <p class="small text-muted mb-0 px-2">
+                            {{ predictions.reference_days }}日間の記録 {{ predictions.sleep_log_count }}件・起床間隔 {{ predictions.sleep_interval_count }}件
+                        </p>
+                        {% if not predictions.sleep_data_sufficient %}
+                            <p class="small text-muted mb-0 px-2">データ不足のため、標準の2時間30分を使用しています。</p>
+                        {% endif %}
+                    </div>
+                </section>
+
+                <section class="soft-card p-3 p-md-4 mb-3" aria-labelledby="quick-heading">
+                    <div class="mb-3">
+                        <p class="eyebrow mb-1">ONE TAP</p>
+                        <h2 id="quick-heading" class="section-title mb-0">カンタン入力</h2>
+                    </div>
+                    {% if not is_demo_account %}
+                    <form method="post" class="row row-cols-2 row-cols-sm-4 g-2 g-md-3">
+                        {% csrf_token %}
+                        <input type="hidden" name="next" value="{% url 'log_list' %}{% if predictions.reference_days != 7 %}?reference_days={{ predictions.reference_days }}{% endif %}">
+                        <button type="submit" name="quick_log" value="milk" class="btn quick-button">
+                            <span class="quick-icon" aria-hidden="true">🍼</span><span class="quick-label">授乳</span>
+                        </button>
+                        <button type="submit" name="quick_log" value="sleep" class="btn quick-button">
+                            <span class="quick-icon" aria-hidden="true">☁️</span><span class="quick-label">睡眠</span>
+                        </button>
+                        <button type="submit" name="quick_log" value="toilet" class="btn quick-button">
+                            <span class="quick-icon" aria-hidden="true">💩</span><span class="quick-label">排泄</span>
+                        </button>
+                        <button type="submit" name="quick_log" value="temperature" class="btn quick-button">
+                            <span class="quick-icon" aria-hidden="true">🌡️</span><span class="quick-label">体温</span>
+                        </button>
+                        <div class="col-12 d-flex justify-content-center pt-1">
+                            <a class="btn btn-link link-secondary text-decoration-none" href="#detailed-input" data-bs-toggle="collapse" role="button" aria-expanded="{% if form.errors %}true{% else %}false{% endif %}" aria-controls="detailed-input">
+                                詳細に記録する <span aria-hidden="true">↓</span>
+                            </a>
+                        </div>
+                    </form>
+                    {% else %}
+                        <p class="text-muted mb-0">デモアカウントでは記録の追加・編集・削除はできません。</p>
+                    {% endif %}
+                </section>
+
+                {% if not is_demo_account %}
+                <section class="collapse {% if form.errors %}show{% endif %} mb-3" id="detailed-input" aria-labelledby="detail-heading">
+                    <div class="soft-card p-3 p-md-4">
+                        <div class="mb-3">
+                            <p class="eyebrow mb-1">DETAIL</p>
+                            <h2 id="detail-heading" class="section-title mb-0">詳細入力</h2>
+                        </div>
+                        <form method="post" class="baby-form">
+                            {% csrf_token %}
+                            <input type="hidden" name="next" value="{% url 'log_list' %}{% if predictions.reference_days != 7 %}?reference_days={{ predictions.reference_days }}{% endif %}">
+                            {% if form.non_field_errors %}
+                                <div class="alert alert-danger" role="alert">{{ form.non_field_errors }}</div>
+                            {% endif %}
+                            <div class="row g-3">
+                                <div class="col-12 col-md-6">
+                                    <label class="form-label" for="{{ form.log_type.id_for_label }}">{{ form.log_type.label }}</label>
+                                    {{ form.log_type }}
+                                    {% for error in form.log_type.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+                                </div>
+                                <div class="col-12 col-md-6">
+                                    <label class="form-label" for="{{ form.timestamp.id_for_label }}">{{ form.timestamp.label }}</label>
+                                    {{ form.timestamp }}
+                                    {% for error in form.timestamp.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+                                </div>
+                                <div class="col-12 col-md-6" data-log-types="milk">
+                                    <label class="form-label" for="{{ form.amount.id_for_label }}">{{ form.amount.label }}</label>
+                                    <div class="input-group">
+                                        {{ form.amount }}
+                                        <span class="input-group-text">ml</span>
+                                    </div>
+                                    {% for error in form.amount.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+                                </div>
+                                <div class="col-12 col-md-6" data-log-types="milk,sleep">
+                                    <label class="form-label" for="{{ form.duration.id_for_label }}">{{ form.duration.label }}</label>
+                                    <div class="input-group">
+                                        {{ form.duration }}
+                                        <span class="input-group-text">分</span>
+                                    </div>
+                                    {% for error in form.duration.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+                                </div>
+                                <div class="col-12 col-md-6" data-log-types="temperature">
+                                    <label class="form-label" for="{{ form.temperature.id_for_label }}">{{ form.temperature.label }}</label>
+                                    <div class="input-group">
+                                        {{ form.temperature }}
+                                        <span class="input-group-text">℃</span>
+                                    </div>
+                                    {% for error in form.temperature.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label" for="{{ form.memo.id_for_label }}">{{ form.memo.label }}</label>
+                                    {{ form.memo }}
+                                    {% for error in form.memo.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
+                                </div>
+                                <div class="col-12 d-flex justify-content-end">
+                                    <button type="submit" class="btn submit-button px-4 py-2">記録を保存する ♡</button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </section>
+                {% endif %}
+
+                <section id="timeline" class="soft-card p-3 p-md-4 mb-3" aria-labelledby="logs-heading">
+                    <div class="d-flex align-items-end justify-content-between mb-3">
+                        <div>
+                            <p class="eyebrow mb-1">LITTLE MOMENTS</p>
+                            <h2 id="logs-heading" class="section-title mb-0">
+                                <a class="link-dark link-underline-opacity-0" href="{% url 'daily_log' %}">直近の記録</a>
+                            </h2>
+                        </div>
+                        <a class="small link-secondary" href="{% url 'daily_log' %}">もっと見る →</a>
+                    </div>
+
+                    {% if logs %}
+                        <ul class="list-unstyled d-grid gap-2 mb-0">
+                            {% for log in logs %}
+                                <li class="log-item p-3">
+                                    <div class="d-flex align-items-start gap-3">
+                                        <span class="log-icon" aria-hidden="true">
+                                            {% if log.log_type == "milk" %}🍼
+                                            {% elif log.log_type == "sleep" %}☁️
+                                            {% elif log.log_type == "diaper" or log.log_type == "toilet" %}💩
+                                            {% elif log.log_type == "temperature" %}🌡️
+                                            {% else %}🌷{% endif %}
+                                        </span>
+                                        <div class="min-w-0 flex-grow-1">
+                                            <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
+                                                <h3 class="h6 fw-bold mb-0">{{ log.get_log_type_display }}</h3>
+                                                <time class="small text-muted" datetime="{{ log.timestamp|date:'c' }}">{{ log.timestamp|date:"n月j日 H:i" }}</time>
+                                            </div>
+                                            {% if log.amount != None %}<p class="small mb-1">量: {{ log.amount }} ml</p>{% endif %}
+                                            {% if log.duration != None %}<p class="small mb-1">時間: {{ log.duration }} 分</p>{% endif %}
+                                            {% if log.temperature != None %}<p class="small mb-1">体温: {{ log.temperature }} ℃</p>{% endif %}
+                                            {% if log.memo %}
+                                                <p class="mb-0 text-break">
+                                                    {% if is_demo_account and log.memo|slice:":13" == "demo-seed:v1:" %}デモサンプル記録{% else %}{{ log.memo|linebreaksbr }}{% endif %}
+                                                </p>
+                                            {% endif %}
+                                            {% if not is_demo_account %}
+                                            <div class="d-flex justify-content-end gap-2 mt-2">
+                                                <a class="btn btn-sm btn-outline-secondary rounded-pill" href="{% url 'log_edit' log.pk %}?next={% url 'log_list' %}">編集</a>
+                                                <a class="btn btn-sm btn-outline-danger rounded-pill" href="{% url 'log_delete' log.pk %}?next={% url 'log_list' %}">削除</a>
+                                            </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <div class="empty-state text-center px-3 py-4">
+                            <p class="fw-bold mb-1">記録はまだありません</p>
+                            <p class="small text-muted mb-0">最初の記録をつけてみましょう。</p>
+                        </div>
+                    {% endif %}
+                </section>
+            </section>
+
+            <section class="tab-pane fade" id="graph-panel" role="tabpanel" aria-labelledby="graph-tab" tabindex="0">
+                <div class="soft-card p-3 p-md-4">
+                    <p class="eyebrow mb-1">FEEDING</p>
+                    <h2 class="section-title mb-3">直近7日間の授乳量（ml）</h2>
+                    {% if has_feeding_data %}
+                        <div class="chart-container" style="position: relative; min-height: 250px;">
+                            <canvas id="top-feeding-chart" role="img" aria-label="直近7日間の日別授乳量の棒グラフ"></canvas>
+                        </div>
+                    {% else %}
+                        <p class="empty-state p-3 mb-0">直近7日間に授乳量の記録はありません。</p>
+                    {% endif %}
+                    <a class="btn btn-sm btn-outline-secondary rounded-pill mt-3" href="{% url 'analytics_dashboard' %}">分析画面で詳しく見る</a>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    {% include "navigation.html" with active_page="home" %}
+
+    {{ daily_data|json_script:"top-analytics-data" }}
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const dateElement = document.getElementById("current-date");
+        const timeElement = document.getElementById("current-time");
+
+        function updateClock() {
+            const now = new Date();
+            dateElement.textContent = new Intl.DateTimeFormat("ja-JP", {
+                year: "numeric",
+                month: "long",
+                day: "numeric",
+                weekday: "long",
+            }).format(now);
+            timeElement.textContent = new Intl.DateTimeFormat("ja-JP", {
+                hour: "2-digit",
+                minute: "2-digit",
+                hour12: false,
+            }).format(now);
+            timeElement.dateTime = now.toISOString();
+        }
+
+        updateClock();
+        window.setInterval(updateClock, 30000);
+
+        const topDailyData = JSON.parse(document.getElementById("top-analytics-data").textContent);
+        let topFeedingChart;
+        const topFeedingCanvas = document.getElementById("top-feeding-chart");
+        if (topFeedingCanvas) topFeedingChart = new Chart(topFeedingCanvas, {
+            type: "bar",
+            data: {
+                labels: topDailyData.map((item) => {
+                    const [, month, day] = item.date.split("-").map(Number);
+                    return `${month}/${day}`;
+                }),
+                datasets: [{
+                    label: "授乳量 (ml)",
+                    data: topDailyData.map((item) => item.feeding_amount_ml),
+                    backgroundColor: "#a8b9a5",
+                    borderColor: "#718873",
+                    borderWidth: 1,
+                    borderRadius: 8,
+                    maxBarThickness: 36,
+                }],
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: { display: true, text: "ml" },
+                        grid: { color: "#f2ece7" },
+                    },
+                    x: { grid: { display: false } },
+                },
+            },
+        });
+
+        document.getElementById("graph-tab").addEventListener("shown.bs.tab", () => {
+            if (topFeedingChart) topFeedingChart.resize();
+        });
+
+        if (window.location.hash === "#detailed-input") {
+            const detailForm = document.getElementById("detailed-input");
+            bootstrap.Collapse.getOrCreateInstance(detailForm).show();
+            detailForm.scrollIntoView({ behavior: "smooth" });
+        }
+
+        const logTypeField = document.getElementById("{{ form.log_type.id_for_label }}");
+        function updateLogFields() {
+            document.querySelectorAll("[data-log-types]").forEach((container) => {
+                const types = container.dataset.logTypes.split(",");
+                container.hidden = !types.includes(logTypeField.value);
+            });
+        }
+        logTypeField.addEventListener("change", updateLogFields);
+        updateLogFields();
+    </script>
+</body>
+</html>

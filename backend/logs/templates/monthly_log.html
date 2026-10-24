@@ -1,0 +1,257 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>月別の記録 | BabyLog</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --cream: #fffaf2;
+            --rose: #d98e83;
+            --ink: #514b48;
+            --muted: #8c817b;
+            --mint: #dcebe3;
+        }
+
+        body {
+            min-height: 100vh;
+            padding-bottom: 6.5rem;
+            color: var(--ink);
+            background:
+                radial-gradient(ellipse at 8% 4%, #f8e8dd 0, transparent 28rem),
+                radial-gradient(ellipse at 95% 20%, #e9f1e8 0, transparent 25rem),
+                var(--cream);
+            font-family: "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif;
+        }
+
+        .page-shell {
+            max-width: 760px;
+        }
+
+        .eyebrow {
+            color: var(--rose);
+            font-size: .75rem;
+            font-weight: 700;
+            letter-spacing: .12em;
+        }
+
+        .soft-card {
+            border: 1px solid #f1e9e1;
+            border-radius: 1.25rem;
+            background: #fff;
+            box-shadow: 0 12px 32px #80614a0d;
+        }
+
+        .month-arrow {
+            display: grid;
+            width: 2.75rem;
+            height: 2.75rem;
+            place-items: center;
+            border: 1px solid #f0e6dd;
+            border-radius: 50%;
+            background: #fffdfa;
+            color: var(--ink);
+            font-size: 1.2rem;
+            text-decoration: none;
+        }
+
+        .month-arrow:hover,
+        .month-arrow:focus-visible {
+            background: #fff1e9;
+            color: var(--ink);
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, minmax(0, 1fr));
+            gap: .35rem;
+        }
+
+        .calendar-weekday,
+        .calendar-day {
+            display: grid;
+            min-height: 2.6rem;
+            place-items: center;
+            border-radius: .75rem;
+        }
+
+        .calendar-weekday {
+            color: var(--muted);
+            font-size: .75rem;
+            font-weight: 700;
+        }
+
+        .calendar-day {
+            position: relative;
+            color: var(--ink);
+            text-decoration: none;
+        }
+
+        a.calendar-day:hover,
+        a.calendar-day:focus-visible {
+            background: #fff1e9;
+        }
+
+        .calendar-day.outside-month {
+            color: #c8bfba;
+        }
+
+        .calendar-day.today {
+            outline: 1px solid #e7bdb0;
+        }
+
+        .calendar-day.has-logs::after {
+            position: absolute;
+            bottom: .22rem;
+            width: .3rem;
+            height: .3rem;
+            border-radius: 50%;
+            background: var(--rose);
+            content: "";
+        }
+
+        .summary-card {
+            border: 1px solid #f0e9e3;
+            border-radius: 1rem;
+            background: #fffdfa;
+        }
+
+        .summary-icon {
+            font-size: 1.5rem;
+        }
+
+        .summary-value {
+            color: #765c54;
+            font-size: 1.35rem;
+            font-weight: 700;
+        }
+
+        .text-muted {
+            color: var(--muted) !important;
+        }
+
+        .bottom-nav {
+            z-index: 1030;
+            border-top: 1px solid #f0e8df;
+            background: #fffdf9f2;
+            backdrop-filter: blur(12px);
+        }
+
+        .bottom-nav .nav-link {
+            min-width: 4.2rem;
+            color: var(--muted);
+            font-size: .7rem;
+            text-align: center;
+        }
+
+        .bottom-nav .nav-link.active {
+            color: #bd766c;
+            font-weight: 700;
+        }
+
+        .bottom-nav .nav-icon {
+            display: block;
+            margin-bottom: .15rem;
+            font-size: 1.2rem;
+            line-height: 1.2;
+        }
+
+        .bottom-nav .nav-link.disabled {
+            opacity: .55;
+        }
+    </style>
+    <link rel="stylesheet" href="{% static 'logs/app.css' %}">
+</head>
+<body>
+    <main class="container page-shell py-3 py-md-4">
+        <header class="d-flex align-items-center gap-3 mb-4">
+            <a href="{% url 'log_list' %}" class="text-decoration-none fw-bold" aria-label="ホームへ">BabyLog</a>
+            <div>
+                <p class="eyebrow mb-1">LITTLE MOMENTS</p>
+                <h1 class="h4 fw-bold mb-0">月別の記録</h1>
+            </div>
+        </header>
+
+        <section class="soft-card p-3 p-md-4 mb-3" aria-label="月の切り替え">
+            <div class="d-flex align-items-center justify-content-between gap-3">
+                <a class="month-arrow" href="{% url 'monthly_log' %}?year={{ prev_month|date:'Y' }}&amp;month={{ prev_month|date:'n' }}" aria-label="前の月">‹</a>
+                <div class="text-center">
+                    <p class="eyebrow mb-1">MONTHLY SUMMARY</p>
+                    <h2 class="h4 fw-bold mb-0">{{ selected_month|date:"Y年n月" }}</h2>
+                </div>
+                <a class="month-arrow" href="{% url 'monthly_log' %}?year={{ next_month|date:'Y' }}&amp;month={{ next_month|date:'n' }}" aria-label="次の月">›</a>
+            </div>
+        </section>
+
+        <section class="soft-card p-3 p-md-4 mb-3" aria-labelledby="calendar-heading">
+            <div class="mb-3">
+                <p class="eyebrow mb-1">CALENDAR</p>
+                <h2 id="calendar-heading" class="h6 fw-bold mb-0">記録のある日</h2>
+            </div>
+            <div class="calendar-grid mb-2" aria-hidden="true">
+                <span class="calendar-weekday">日</span>
+                <span class="calendar-weekday">月</span>
+                <span class="calendar-weekday">火</span>
+                <span class="calendar-weekday">水</span>
+                <span class="calendar-weekday">木</span>
+                <span class="calendar-weekday">金</span>
+                <span class="calendar-weekday">土</span>
+            </div>
+            <div class="d-grid gap-1">
+                {% for week in calendar_weeks %}
+                    <div class="calendar-grid">
+                        {% for day in week %}
+                            {% if day.in_month %}
+                                <a
+                                    class="calendar-day {% if day.has_logs %}has-logs{% endif %} {% if day.date == today %}today{% endif %}"
+                                    href="{% url 'daily_log' %}?date={{ day.date|date:'Y-m-d' }}"
+                                    aria-label="{{ day.date|date:'Y年n月j日' }}{% if day.has_logs %} 記録あり{% endif %}"
+                                >{{ day.date.day }}</a>
+                            {% else %}
+                                <span class="calendar-day outside-month" aria-hidden="true">{{ day.date.day }}</span>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                {% endfor %}
+            </div>
+            <p class="small text-muted mt-3 mb-0"><span class="calendar-legend-dot" aria-hidden="true"></span> 記録ありの日を選ぶと日別画面を開きます</p>
+        </section>
+
+        <section aria-labelledby="summary-heading">
+            <div class="mb-3">
+                <p class="eyebrow mb-1">GROWING TOGETHER</p>
+                <h2 id="summary-heading" class="h6 fw-bold mb-0">今月のまとめ</h2>
+            </div>
+            <div class="row g-2">
+                <div class="col-12 col-sm-4">
+                    <article class="summary-card h-100 p-3 text-center">
+                        <span class="summary-icon" aria-hidden="true">☁️</span>
+                        <p class="small text-muted mt-2 mb-1">睡眠合計</p>
+                        <p class="summary-value mb-0">{{ sleep_total_hours|floatformat:1 }}<span class="fs-6">時間</span></p>
+                        <p class="small text-muted mb-0">({{ sleep_total_minutes|floatformat:0 }}分)</p>
+                    </article>
+                </div>
+                <div class="col-12 col-sm-4">
+                    <article class="summary-card h-100 p-3 text-center">
+                        <span class="summary-icon" aria-hidden="true">🍼</span>
+                        <p class="small text-muted mt-2 mb-1">授乳</p>
+                        <p class="summary-value mb-0">{{ milk_count }}<span class="fs-6">回</span></p>
+                        <p class="small text-muted mb-0">合計 {{ milk_total_ml|floatformat:0 }} ml</p>
+                    </article>
+                </div>
+                <div class="col-12 col-sm-4">
+                    <article class="summary-card h-100 p-3 text-center">
+                        <span class="summary-icon" aria-hidden="true">🧷</span>
+                        <p class="small text-muted mt-2 mb-1">おむつ交換</p>
+                        <p class="summary-value mb-0">{{ diaper_count }}<span class="fs-6">回</span></p>
+                    </article>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    {% include "navigation.html" with active_page="monthly" %}
+</body>
+</html>

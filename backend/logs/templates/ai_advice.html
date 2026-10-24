@@ -1,0 +1,242 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>育児アドバイス | BabyLog</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --cream: #fffaf2;
+            --rose: #d98e83;
+            --ink: #514b48;
+            --muted: #8c817b;
+        }
+
+        body {
+            min-height: 100vh;
+            padding-bottom: 6.5rem;
+            color: var(--ink);
+            background:
+                radial-gradient(ellipse at 8% 4%, #f8e8dd 0, transparent 28rem),
+                radial-gradient(ellipse at 95% 20%, #e9f1e8 0, transparent 25rem),
+                var(--cream);
+            font-family: "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif;
+        }
+
+        .page-shell {
+            max-width: 760px;
+        }
+
+        .soft-card {
+            border: 1px solid #f1e9e1;
+            border-radius: 1.25rem;
+            background: #fff;
+            box-shadow: 0 12px 32px #80614a0d;
+        }
+
+        .eyebrow {
+            color: var(--rose);
+            font-size: .75rem;
+            font-weight: 700;
+            letter-spacing: .12em;
+        }
+
+        .advice-card {
+            background: linear-gradient(135deg, #fff 20%, #fff3ec 100%);
+        }
+
+        .advice-text {
+            line-height: 1.9;
+            white-space: pre-line;
+        }
+
+        .report-section + .report-section {
+            border-top: 1px solid #f1e9e1;
+        }
+
+        .bottom-nav {
+            z-index: 1030;
+            border-top: 1px solid #f0e8df;
+            background: #fffdf9f2;
+            backdrop-filter: blur(12px);
+        }
+
+        .bottom-nav .nav-link {
+            min-width: 4rem;
+            color: var(--muted);
+            font-size: .68rem;
+            text-align: center;
+        }
+
+        .bottom-nav .nav-link.active {
+            color: #bd766c;
+            font-weight: 700;
+        }
+
+        .bottom-nav .nav-icon {
+            display: block;
+            margin-bottom: .15rem;
+            font-size: 1.2rem;
+            line-height: 1.2;
+        }
+
+        .bottom-nav .nav-link.disabled {
+            opacity: .55;
+        }
+    </style>
+    <link rel="stylesheet" href="{% static 'logs/app.css' %}">
+</head>
+<body>
+    <main class="container page-shell py-3 py-md-4">
+        <header class="d-flex align-items-center gap-3 mb-4">
+            <a href="{% url 'log_list' %}" class="text-decoration-none fw-bold" aria-label="ホームへ">BabyLog</a>
+            <div class="flex-grow-1">
+                <p class="eyebrow mb-1">A LITTLE SUPPORT</p>
+                <h1 class="h4 fw-bold mb-0">AI育児アドバイザー</h1>
+            </div>
+        </header>
+
+        <section class="soft-card p-3 p-md-4 mb-3" aria-labelledby="summary-heading">
+            <p class="eyebrow mb-1">RECORD SUMMARY</p>
+            <h2 id="summary-heading" class="h6 fw-bold mb-3">分析対象の記録</h2>
+            <p class="mb-1">
+                <strong>{{ analysis_data.period_label }}</strong>
+                （{{ analysis_data.period_start }} ～ {{ analysis_data.period_end }}）
+            </p>
+            <p class="small text-muted mb-3">
+                対象記録 {{ analysis_data.record_count }} 件。
+                期間は開始時刻を含み、終了時刻を含みません。
+            </p>
+            {% if not has_recent_logs %}
+                <p class="alert alert-info py-2 mb-3">
+                    この期間の記録はありません。記録がないことは、出来事がなかったことを意味しません。
+                </p>
+            {% endif %}
+            <details>
+                <summary class="small fw-semibold">日ごとの集計と記録状況を見る</summary>
+                <div class="table-responsive mt-3">
+                    <table class="table table-sm align-middle">
+                        <thead>
+                            <tr>
+                                <th scope="col">日付</th>
+                                <th scope="col">授乳</th>
+                                <th scope="col">睡眠</th>
+                                <th scope="col">おむつ・排泄</th>
+                                <th scope="col">体温</th>
+                                <th scope="col">その他</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for day in analysis_data.daily_data %}
+                                <tr>
+                                    <th scope="row">{{ day.date }}</th>
+                                    <td>
+                                        {% if day.record_counts.milk %}
+                                            {{ day.record_counts.milk }}件
+                                            {% if day.milk_amount_ml != None %}・{{ day.milk_amount_ml }}ml{% else %}・量未記録{% endif %}
+                                            <br><span class="small text-muted">{{ day.milk_times|join:", " }}</span>
+                                            {% if not day.milk_amount_complete %}<br><span class="small text-muted">量に未記録あり</span>{% endif %}
+                                        {% else %}記録なし{% endif %}
+                                    </td>
+                                    <td>
+                                        {% if day.record_counts.sleep %}
+                                            {{ day.record_counts.sleep }}件
+                                            {% if day.sleep_total_minutes != None %}・{{ day.sleep_total_minutes }}分{% else %}・時間未記録{% endif %}
+                                            {% if not day.sleep_duration_complete %}<br><span class="small text-muted">時間に未記録あり</span>{% endif %}
+                                        {% else %}記録なし{% endif %}
+                                    </td>
+                                    <td>
+                                        {% if day.record_counts.diaper %}交換 {{ day.record_counts.diaper }}件{% else %}おむつ記録なし{% endif %}
+                                        {% if day.record_counts.toilet %}<br>排泄 {{ day.record_counts.toilet }}件{% endif %}
+                                    </td>
+                                    <td>
+                                        {% if day.temperature_readings %}
+                                            {% for reading in day.temperature_readings %}
+                                                {{ reading.time }} {{ reading.temperature_c }}℃
+                                                {% if not forloop.last %}<br>{% endif %}
+                                            {% endfor %}
+                                        {% elif day.record_counts.temperature %}
+                                            値未記録
+                                        {% else %}記録なし{% endif %}
+                                    </td>
+                                    <td>
+                                        {% if day.record_counts.other %}{{ day.record_counts.other }}件{% else %}記録なし{% endif %}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <p class="small text-muted mb-2">
+                    件数は保存された記録行の数です。記録なしは、実際に出来事がなかったことを示すものではありません。
+                </p>
+                {% if analysis_data.comparisons %}
+                    <h3 class="h6 fw-semibold mt-3">前半・後半の比較</h3>
+                    <ul class="small mb-0">
+                        {% for comparison in analysis_data.comparisons %}
+                            <li>
+                                {{ comparison.metric }}:
+                                前半 {{ comparison.before_value }} →
+                                後半 {{ comparison.after_value }}
+                                （完了日あたり平均、比較日 {{ comparison.before_days }}日/{{ comparison.after_days }}日）
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p class="small text-muted mb-0">比較に必要な記録日数が不足しているため、数値比較はありません。</p>
+                {% endif %}
+            </details>
+        </section>
+
+        <section class="soft-card advice-card p-3 p-md-4 mb-3" aria-labelledby="advice-heading" aria-live="polite">
+            <p class="eyebrow mb-1">AI REPORT</p>
+            <h2 id="advice-heading" class="h5 fw-bold mb-3">記録からの分析レポート</h2>
+            {% if advice_unavailable %}
+                <p class="text-danger mb-0">{{ report }}</p>
+                {% if advice_timed_out %}
+                    <p class="small text-muted mt-2 mb-0">分析期間をそのままにして、下のボタンから再実行できます。自動再試行は行っていません。</p>
+                {% endif %}
+            {% elif report %}
+                {% for key, title, content in report_sections %}
+                    <section class="report-section py-3" aria-labelledby="report-{{ key }}">
+                        <h3 id="report-{{ key }}" class="h6 fw-bold">{{ title }}</h3>
+                        <p class="advice-text mb-0">{{ content }}</p>
+                    </section>
+                {% endfor %}
+            {% else %}
+                <p class="text-muted mb-0">分析期間を選び、日ごとの記録集計に基づいたレポートを生成できます。</p>
+            {% endif %}
+        </section>
+
+        <form method="post" class="text-start">
+            {% csrf_token %}
+            <label for="analysis-period" class="form-label fw-semibold">分析対象期間</label>
+            <select id="analysis-period" name="period" class="form-select mb-3">
+                {% for key, value in analysis_periods.items %}
+                    <option value="{{ key }}" {% if selected_period == key %}selected{% endif %}>{{ value.label }}</option>
+                {% endfor %}
+            </select>
+            <button type="submit" class="btn submit-button px-4 py-2" id="generate-report">
+                分析レポートを生成する
+            </button>
+            <span id="generating-status" class="small text-muted ms-2" role="status" aria-live="polite"></span>
+        </form>
+
+        <p class="small text-muted text-center mt-3 mb-0">
+            このレポートは記録整理の参考情報で、医療診断ではありません。健康について不安がある場合は小児科などの専門家にご相談ください。
+        </p>
+    </main>
+
+    {% include "navigation.html" with active_page="advice" %}
+    <script>
+        document.querySelector("form").addEventListener("submit", () => {
+            const button = document.getElementById("generate-report");
+            button.disabled = true;
+            button.textContent = "分析中…";
+            document.getElementById("generating-status").textContent = "記録を集計してレポートを作成しています。";
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,65 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>記録の削除 | BabyLog</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --cream: #fffaf2;
+            --rose: #d98e83;
+            --ink: #514b48;
+        }
+
+        body {
+            min-height: 100vh;
+            color: var(--ink);
+            background: radial-gradient(ellipse at 8% 4%, #f8e8dd 0, transparent 28rem), var(--cream);
+        }
+
+        .confirm-card {
+            width: min(100%, 480px);
+            border: 1px solid #f1e9e1;
+            border-radius: 1.25rem;
+            background: #fff;
+            box-shadow: 0 12px 32px #80614a0d;
+        }
+
+        .confirm-button {
+            border: 0;
+            border-radius: .8rem;
+            background: var(--rose);
+            color: #fff;
+            font-weight: 700;
+        }
+
+        .confirm-button:hover {
+            background: #c97d72;
+            color: #fff;
+        }
+    </style>
+    <link rel="stylesheet" href="{% static 'logs/app.css' %}">
+</head>
+<body>
+    <main class="container page-shell min-vh-100 d-flex align-items-center justify-content-center py-4">
+        <section class="confirm-card p-4 p-md-5 text-center">
+            <h1 class="h4 fw-bold mb-3">この記録を削除しますか？</h1>
+            <p class="text-muted mb-4">
+                {{ log.get_log_type_display }}・{{ log.timestamp|date:"Y年n月j日 H:i" }}<br>
+                削除すると元に戻せません。
+            </p>
+            <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="next" value="{{ next_url }}">
+                <div class="d-flex justify-content-center gap-2">
+                    <a href="{{ next_url }}" class="btn btn-light rounded-pill px-3">キャンセル</a>
+                    <button type="submit" class="btn confirm-button px-4">削除する</button>
+                </div>
+            </form>
+        </section>
+    </main>
+    {% include "navigation.html" with active_page="daily" %}
+</body>
+</html>

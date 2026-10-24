@@ -1,0 +1,338 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>日別の記録 | BabyLog</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --cream: #fffaf2;
+            --rose: #d98e83;
+            --ink: #514b48;
+            --muted: #8c817b;
+            --mint: #dcebe3;
+            --line: #eadbd0;
+        }
+
+        body {
+            min-height: 100vh;
+            padding-bottom: 6.5rem;
+            color: var(--ink);
+            background:
+                radial-gradient(ellipse at 8% 4%, #f8e8dd 0, transparent 28rem),
+                radial-gradient(ellipse at 95% 20%, #e9f1e8 0, transparent 25rem),
+                var(--cream);
+            font-family: "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif;
+        }
+
+        .page-shell {
+            max-width: 760px;
+        }
+
+        .eyebrow {
+            color: var(--rose);
+            font-size: .75rem;
+            font-weight: 700;
+            letter-spacing: .12em;
+        }
+
+        .soft-card {
+            border: 1px solid #f1e9e1;
+            border-radius: 1.25rem;
+            background: #fff;
+            box-shadow: 0 12px 32px #80614a0d;
+        }
+
+        .date-navigation {
+            display: grid;
+            grid-template-columns: 3rem 1fr 3rem;
+            align-items: center;
+            gap: .5rem;
+        }
+
+        .date-arrow {
+            display: grid;
+            width: 2.75rem;
+            height: 2.75rem;
+            place-items: center;
+            border: 1px solid #f0e6dd;
+            border-radius: 50%;
+            background: #fffdfa;
+            color: var(--ink);
+            font-size: 1.2rem;
+            text-decoration: none;
+        }
+
+        .date-arrow:hover,
+        .date-arrow:focus-visible {
+            background: #fff1e9;
+            color: var(--ink);
+        }
+
+        .day-timeline {
+            position: relative;
+            padding-left: 5rem;
+        }
+
+        .day-timeline::before {
+            position: absolute;
+            top: .25rem;
+            bottom: .25rem;
+            left: 4rem;
+            width: 2px;
+            background: var(--line);
+            content: "";
+        }
+
+        .timeline-entry {
+            position: relative;
+            padding-bottom: 1rem;
+        }
+
+        .timeline-time {
+            position: absolute;
+            top: 1rem;
+            left: -4.7rem;
+            width: 3.4rem;
+            color: var(--muted);
+            font-size: .8rem;
+            font-variant-numeric: tabular-nums;
+            font-weight: 700;
+            text-align: right;
+        }
+
+        .timeline-dot {
+            position: absolute;
+            top: 1.05rem;
+            left: -1.4rem;
+            width: .8rem;
+            height: .8rem;
+            border: 3px solid #fff;
+            border-radius: 50%;
+            background: var(--rose);
+            box-shadow: 0 0 0 2px #edc9bd;
+        }
+
+        .record-card {
+            border: 1px solid #f0e9e3;
+            border-radius: 1rem;
+            background: #fff;
+        }
+
+        .record-icon {
+            display: grid;
+            width: 2.75rem;
+            height: 2.75rem;
+            flex: 0 0 2.75rem;
+            place-items: center;
+            border-radius: .95rem;
+            background: var(--mint);
+            font-size: 1.3rem;
+        }
+
+        .text-muted {
+            color: var(--muted) !important;
+        }
+
+        .empty-state {
+            border: 1px dashed #e9d9cd;
+            border-radius: 1rem;
+            background: #fffdfa;
+        }
+
+        .fab {
+            position: fixed;
+            z-index: 1020;
+            right: max(1.25rem, calc((100vw - 760px) / 2 + 1.25rem));
+            bottom: 6.25rem;
+            display: grid;
+            width: 3.75rem;
+            height: 3.75rem;
+            place-items: center;
+            border: 0;
+            border-radius: 50%;
+            background: var(--rose);
+            box-shadow: 0 8px 20px #9e62554d;
+            color: #fff;
+            font-size: 2rem;
+            font-family: inherit;
+            line-height: 1;
+            cursor: pointer;
+        }
+
+        .fab:hover,
+        .fab:focus-visible {
+            transform: translateY(-2px);
+            background: #c97d72;
+            color: #fff;
+        }
+
+        .bottom-nav {
+            z-index: 1030;
+            border-top: 1px solid #f0e8df;
+            background: #fffdf9f2;
+            backdrop-filter: blur(12px);
+        }
+
+        .bottom-nav .nav-link {
+            min-width: 4.2rem;
+            color: var(--muted);
+            font-size: .7rem;
+            text-align: center;
+        }
+
+        .bottom-nav .nav-link.active {
+            color: #bd766c;
+            font-weight: 700;
+        }
+
+        .bottom-nav .nav-icon {
+            display: block;
+            margin-bottom: .15rem;
+            font-size: 1.2rem;
+            line-height: 1.2;
+        }
+
+        .bottom-nav .nav-link.disabled {
+            opacity: .55;
+        }
+    </style>
+    <link rel="stylesheet" href="{% static 'logs/app.css' %}">
+</head>
+<body>
+    <main class="container page-shell py-3 py-md-4">
+        <header class="d-flex align-items-center gap-3 mb-4">
+            <a href="{% url 'log_list' %}" class="text-decoration-none fw-bold" aria-label="ホームへ">BabyLog</a>
+            <div class="flex-grow-1">
+                <p class="eyebrow mb-1">LITTLE MOMENTS</p>
+                <h1 class="h4 fw-bold mb-0">日別の記録</h1>
+            </div>
+            <a
+                class="btn btn-sm btn-outline-secondary rounded-pill"
+                href="{% url 'monthly_log' %}?year={{ selected_date|date:'Y' }}&amp;month={{ selected_date|date:'n' }}"
+            >月表示</a>
+        </header>
+
+        {% if messages %}
+            <div class="mb-3" aria-live="polite">
+                {% for message in messages %}
+                    <div class="alert {% if message.tags == 'error' %}alert-danger{% else %}alert-success{% endif %} alert-dismissible fade show py-2" role="status">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="閉じる"></button>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        {% if is_demo_account %}
+            <div class="alert alert-info py-2" role="status">
+                デモアカウントでは記録の追加・編集・削除はできません。
+            </div>
+        {% endif %}
+
+        <section class="soft-card p-3 p-md-4 mb-4" aria-label="表示する日付">
+            <div class="date-navigation">
+                <a class="date-arrow" href="{% url 'daily_log' %}?date={{ previous_date|date:'Y-m-d' }}" aria-label="前の日">‹</a>
+                <div class="text-center">
+                    <p class="eyebrow mb-1">DAILY TIMELINE</p>
+                    <h2 class="h5 fw-bold mb-0">
+                        <time datetime="{{ selected_date|date:'Y-m-d' }}">{{ selected_date|date:"n月j日 (D)" }}</time>
+                    </h2>
+                </div>
+                <a class="date-arrow" href="{% url 'daily_log' %}?date={{ next_date|date:'Y-m-d' }}" aria-label="次の日">›</a>
+            </div>
+        </section>
+
+        <section aria-labelledby="records-heading">
+            <div class="d-flex align-items-end justify-content-between mb-3">
+                <div>
+                    <p class="eyebrow mb-1">24 HOURS</p>
+                    <h2 id="records-heading" class="h5 fw-bold mb-0">この日の記録</h2>
+                </div>
+                <span class="small text-muted">{{ logs|length }} 件</span>
+            </div>
+
+            {% if logs %}
+                <ol class="day-timeline list-unstyled mb-0">
+                    {% for log in logs %}
+                        <li class="timeline-entry">
+                            <time class="timeline-time" datetime="{{ log.timestamp|date:'c' }}">{{ log.timestamp|date:"H:i" }}</time>
+                            <span class="timeline-dot" aria-hidden="true"></span>
+                            <article class="record-card p-3">
+                                <div class="d-flex align-items-start gap-3">
+                                    <span class="record-icon" aria-hidden="true">
+                                        {% if log.log_type == "milk" %}🍼
+                                        {% elif log.log_type == "sleep" %}☁️
+                                        {% elif log.log_type == "diaper" or log.log_type == "toilet" %}💩
+                                        {% elif log.log_type == "temperature" %}🌡️
+                                        {% else %}🌷{% endif %}
+                                    </span>
+                                    <div class="min-w-0 flex-grow-1">
+                                        <h3 class="h6 fw-bold mb-1">{{ log.get_log_type_display }}</h3>
+                                        {% if log.amount != None %}<p class="small mb-1">量: {{ log.amount }} ml</p>{% endif %}
+                                        {% if log.duration != None %}<p class="small mb-1">時間: {{ log.duration }} 分</p>{% endif %}
+                                        {% if log.temperature != None %}<p class="small mb-1">体温: {{ log.temperature }} ℃</p>{% endif %}
+                                        {% if log.memo %}
+                                            <p class="mb-0 text-break">
+                                                {% if is_demo_account and log.memo|slice:":13" == "demo-seed:v1:" %}デモサンプル記録{% else %}{{ log.memo|linebreaksbr }}{% endif %}
+                                            </p>
+                                        {% else %}
+                                            <p class="small text-muted mb-0">メモはありません</p>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                {% if not is_demo_account %}
+                                <div class="d-flex justify-content-end gap-2 mt-2">
+                                    <a class="btn btn-sm btn-outline-secondary rounded-pill" href="{% url 'log_edit' log.pk %}?next={{ request.get_full_path|urlencode }}">編集</a>
+                                    <a class="btn btn-sm btn-outline-danger rounded-pill" href="{% url 'log_delete' log.pk %}?next={{ request.get_full_path|urlencode }}">削除</a>
+                                </div>
+                                {% endif %}
+                            </article>
+                        </li>
+                    {% endfor %}
+                </ol>
+            {% else %}
+                <div class="empty-state text-center px-3 py-5">
+
+                    <h3 class="h6 fw-bold">この日の記録はありません</h3>
+                    <p class="text-muted mb-0">新しい記録を追加すると、ここに表示されます。</p>
+                </div>
+            {% endif %}
+        </section>
+    </main>
+
+    {% if not is_demo_account %}
+    <button class="fab" type="button" data-bs-toggle="modal" data-bs-target="#quick-log-modal" aria-label="新しい記録を登録する">＋</button>
+
+    <div class="modal fade" id="quick-log-modal" tabindex="-1" aria-labelledby="quick-log-title" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 rounded-4">
+                <div class="modal-header border-0">
+                    <div>
+                        <p class="eyebrow mb-1">ONE TAP</p>
+                        <h2 class="modal-title h5 fw-bold" id="quick-log-title">カンタン入力</h2>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="閉じる"></button>
+                </div>
+                <div class="modal-body pt-0">
+                    <form method="post" action="{% url 'daily_log' %}?date={{ selected_date|date:'Y-m-d' }}" class="row row-cols-2 g-2">
+                        {% csrf_token %}
+                        <input type="hidden" name="next" value="{% url 'daily_log' %}?date={{ selected_date|date:'Y-m-d' }}">
+                        <button type="submit" name="quick_log" value="milk" class="btn btn-light rounded-4 py-3"><span class="fs-3 d-block">🍼</span>授乳</button>
+                        <button type="submit" name="quick_log" value="sleep" class="btn btn-light rounded-4 py-3"><span class="fs-3 d-block">☁️</span>睡眠</button>
+                        <button type="submit" name="quick_log" value="toilet" class="btn btn-light rounded-4 py-3"><span class="fs-3 d-block">💩</span>排泄</button>
+                        <button type="submit" name="quick_log" value="temperature" class="btn btn-light rounded-4 py-3"><span class="fs-3 d-block">🌡️</span>体温</button>
+                    </form>
+                    <a class="btn btn-link link-secondary text-decoration-none w-100 mt-2" href="{% url 'log_list' %}#detailed-input">詳細に記録する</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    {% include "navigation.html" with active_page="daily" %}
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

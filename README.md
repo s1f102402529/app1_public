@@ -1,4 +1,4 @@
-# BabyLog
+# app1_public
 
 ## プロジェクト概要
 
